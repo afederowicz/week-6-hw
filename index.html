@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Favorite TV Shows</title>
+  <title>TV Show Gifs</title>
   <style type="text/css">
     button,
     div,
@@ -17,7 +17,7 @@
 <body>
 
   <div class="container">
-    <h1>TV Show Search</h1>
+    <h1>TV Show Gifs!</h1>
 
     <!-- Rendered buttons will get dumped Here  -->
     <div id="buttons-view"></div>
@@ -27,7 +27,7 @@
       <input type="text" id="tv-input"><br>
 
       <!-- Button triggers new TV Show to be added -->
-      <input id="add-tv" type="submit" value="Add a TV Show Bro">
+      <input id="add-tv" type="submit" value="Add a TV Show!">
     </form>
 
     <!-- TV Shows will get dumped dere -->
@@ -40,40 +40,40 @@
       // displayTvInfo function re-renders the HTML to display the appropriate content
       function displayTvInfo() {
         var tv = $(this).attr("data-name");
-        var queryURL = "http://www.omdbapi.com/?t=" + tv + "&y=&plot=short&r=json";
+        var queryURL = "http://api.giphy.com/v1/gifs/search?q=" +
+        tv + "&api_key=dc6zaTOxFJmzC&limit=10";
         // Creating an AJAX call for the specific movie button being clicked
         $.ajax({
           url: queryURL,
           method: "GET"
         }).done(function(response) {
-          // Creating a div to hold the movie
-          var tvDiv = $("<div class='tv'>");
-          // Storing the rating data
-          var rating = response.Rated;
-          // Creating an element to have the rating displayed
-          var pOne = $("<p>").text("Rating: " + rating);
-          // Displaying the rating
-          tvDiv.append(pOne);
-          // Storing the release year
-          var released = response.Released;
-          // Creating an element to hold the release year
-          var pTwo = $("<p>").text("Released: " + released);
-          // Displaying the release year
-          tvDiv.append(pTwo);
-          // Storing the plot
-          var plot = response.Plot;
-          // Creating an element to hold the plot
-          var pThree = $("<p>").text("Plot: " + plot);
-          // Appending the plot
-          tvDiv.append(pThree);
-          // Retrieving the URL for the image
-          var imgURL = response.Poster;
-          // Creating an element to hold the image
-          var image = $("<img>").attr("src", imgURL);
-          // Appending the image
-          tvDiv.append(image);
-          // Putting the entire movie above the previous movies
-          $("#tv-view").prepend(tvDiv);
+         
+          
+          $("#tv-view").empty();
+          var results = response.data;
+          // Looping through each result item
+          for (var i = 0; i < results.length; i++) {
+            // Creating and storing a div tag
+            var tvDiv = $("<div>");
+
+            // Creating a paragraph tag with the result item's rating
+            var p = $("<p>").text("Rating: " + results[i].rating);
+            // Creating and storing an image tag
+            var tvImage = $("<img>");
+            // Setting the src attribute of the image to a property pulled off the result item
+            tvImage.attr("src", results[i].images.fixed_height_still.url);
+            tvImage.attr("data-still", results[i].images.fixed_height_still.url);
+            tvImage.attr("data-animate", results[i].images.fixed_height.url);
+            tvImage.attr("data-state", "still");
+            tvImage.addClass("tvImage");
+            // Appending the paragraph and image tag to the tvDiv
+            tvDiv.append(p);
+            tvDiv.append(tvImage);
+            // Prependng the tvDiv to the HTML page in the "#tv-view" div
+            $("#tv-view").prepend(tvDiv);
+          }
+
+          
         });
       }
       // Function for displaying movie data
@@ -86,30 +86,46 @@
           // Then dynamicaly generating buttons for each movie in the array
           // This code $("<button>") is all jQuery needs to create the beginning and end tag. (<button></button>)
           var a = $("<button>");
-          // Adding a class of movie to our button
+          // Adding a class of tv show to our button
           a.addClass("tv");
           // Adding a data-attribute
           a.attr("data-name", tvShows[i]);
+
           // Providing the initial button text
           a.text(tvShows[i]);
           // Adding the button to the buttons-view div
           $("#buttons-view").append(a);
         }
       }
-      // This function handles events where a movie button is clicked
+      // This function handles events where a tv show button is clicked
       $("#add-tv").on("click", function(event) {
         event.preventDefault();
         // This line grabs the input from the textbox
         var tv = $("#tv-input").val().trim();
         // Adding movie from the textbox to our array
         tvShows.push(tv);
-        // Calling renderButtons which handles the processing of our movie array
+        // Calling renderButtons which handles the processing of our tv show array
         renderButtons();
       });
-      // Adding a click event listener to all elements with a class of "movie"
+      // Adding a click event listener to all elements with a class of "tv"
       $(document).on("click", ".tv", displayTvInfo);
       // Calling the renderButtons function to display the intial buttons
       renderButtons();
+
+      $(document).on("click", ".tvImage", function(event) {
+      // The attr jQuery method allows us to get or set the value of any attribute on our HTML element
+      
+      var state = $(this).attr("data-state");
+      if (state === "still") {
+        $(this).attr("src", $(this).data("animate"));
+        $(this).attr("data-state", "animate");
+      } else {
+        // If the clicked image's state is still, update its src attribute to what its data-animate value is.
+        // Then, set the image's data-state to animate
+        $(this).attr("src", $(this).data("still"));
+        $(this).attr("data-state", "still");
+      }
+    });
     </script>
   </div>
 </body>
